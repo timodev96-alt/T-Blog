@@ -1,5 +1,5 @@
 import sqlite3
-from flask import Flask, request, redirect, url_for
+from flask import Flask, request, redirect, url_for, render_template
 
 app = Flask(__name__)
 
@@ -14,23 +14,14 @@ def index():
     conn = get_db()
     posts = conn.execute('SELECT * FROM posts').fetchall()
     conn.close()
-    posts_list = ['<ul>']
-    for post in posts:
-        post_title = f"""
-            <li><a href="/posts/{post['id']}">{post['title']}</a></li>
-        """
-        posts_list.append(post_title)
-    posts_list.append('</ul>')
-    return ''.join(posts_list)
+    return render_template('index.html', posts=posts)
 
 @app.route('/posts/<int:post_id>')
 def show(post_id):
     conn = get_db()
     post = conn.execute('SELECT * FROM posts WHERE id=?',(post_id,)).fetchone()
-    return f"""
-        <h1>{post['title']}</h1>
-        <p>{post['body']}</p>
-    """
+    conn.close()
+    return render_template('show_posts.html', post=post)
 
 @app.route('/posts/create', methods=['GET','POST'])
 def create():

@@ -1,0 +1,15 @@
+{% extends 'base.html' %}
+
+{% block title %}T-Blog{% endblock %}
+
+{% block content %}
+
+<h1>All Posts</h1>
+<ul>
+    {% for post in posts %}
+        <li>
+            <a href="{{ url_for('show', post_id=post.id) }}">{{ post.title}}</a>
+        </li>
+    {% endfor %}
+</ul>
+{% endblock %}
