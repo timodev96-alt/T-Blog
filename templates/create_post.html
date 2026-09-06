@@ -2,14 +2,15 @@
 {% block title %}Create Post{% endblock %}
 
 {% block content %}
-    <form dir="ltr" action="/posts/create" method="post">
-    <label>Post Title:</label>
-    <br />
-    <input type="text" name="title">
-    <br />
-    <label>Post Body:</label>
-    <br />
-    <textarea name="body" cols="50" rows"10"></textarea>
-    <br />
-    <button type="submit">Create Post</button>
+<form action="/posts/create" method="post">
+  <div class="mb-3">
+    <label for="exampleInputEmail1" class="form-label">Post Title</label>
+    <input type="text" name="title" class="form-control" id="exampleInputEmail1" aria-describedby="emailHelp">
+  </div>
+  <div class="mb-3">
+    <label for="exampleInputPassword1" class="form-label">Post Body</label>
+    <textarea class="form-control" name="body" rows="10"> </textarea>
+  </div>
+  <button type="submit" class="btn btn-primary">Create Post</button>
+</form>
 {% endblock %}

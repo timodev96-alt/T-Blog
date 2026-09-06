@@ -12,9 +12,3 @@ h1,h2 {
     font-family: "Comic Sans MS", "Comic Neue", cursive;
     font-weight: bold;
 }
-
-.container {
-    width: 70%;
-    margin: 0 auto;
-    padding: 20px;
-}
