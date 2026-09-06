@@ -1,10 +1,19 @@
-from flask import render_template, request, url_for, redirect, Blueprint , g
+from flask import render_template, request, url_for, redirect, Blueprint , g, flash, abort
 import functools
 import sqlite3
 from database import get_db
 from auth import login_required
 
 bp = Blueprint('Blog', __name__, url_prefix='/posts')
+
+def get_post(post_id, check_author = True):
+    post = get_db().execute('SELECT * FROM posts WHERE id=?', (post_id,)).fetchone()
+
+    if post is None:
+        abort(404, f'There is no post with id:{post_id}')
+    if check_author and post['author_id'] != g.user['id']:
+        abort(403)
+    return post
 
 @bp.route('/')
 def index():
@@ -15,21 +24,59 @@ def index():
 
 @bp.route('/<int:post_id>')
 def show(post_id):
-    conn = get_db()
-    post = conn.execute('SELECT * FROM posts WHERE id=?',(post_id,)).fetchone()
-    conn.close()
+    post = get_post(post_id, check_author=False)
     return render_template('show_posts.html', post=post)
 
 @bp.route('/create', methods=['GET','POST'])
 @login_required
 def create():
     if request.method == 'POST':
-        conn = get_db()
         title = request.form['title']
         body = request.form['body']
-        conn.execute('INSERT INTO posts (title, body, author_id) VALUES (?,?,?)', (title, body, g.user['id']))
-        conn.commit()
-        conn.close()
-        return redirect(url_for('Blog.index'))
+        error = None
+
+        if not title:
+            error = 'Please Enter a Title'
+
+        if error is not None:
+            flash(error)
+        else:
+            conn = get_db()
+            conn.execute('INSERT INTO posts (title, body, author_id) VALUES (?,?,?)', (title, body, g.user['id']))
+            conn.commit()
+            conn.close()
+            return redirect(url_for('Blog.index'))
 
     return render_template('create_post.html')
+
+@bp.route('/<int:post_id>/update', methods=['GET','POST'])
+@login_required
+def update(post_id):
+    post = get_post(post_id)
+
+    if request.method == 'POST':
+        title = request.form['title']
+        body = request.form['body']
+        error = None
+
+        if not title:
+            error = 'Please  Enter a Title'
+        if error is not None:
+            flash(error)
+        else:
+            db = get_db()
+            db.execute('UPDATE posts SET title = ?, body = ? WHERE id = ?', (title,body,post_id))
+            db.commit()
+            db.close()
+            return redirect(url_for('Blog.index'))
+    return render_template('create_post.html', post=post)
+
+@bp.route('/<int:post_id>/delete', methods=['POST'])
+@login_required
+def delete(post_id):
+    post = get_post(post_id)
+    db = get_db()
+    db.execute('DELETE FROM posts WHERE id = ?', (post_id,))
+    db.commit()
+    db.close()
+    return redirect(url_for('Blog.index'))

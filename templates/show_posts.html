@@ -4,12 +4,25 @@
 {{ post.title }}
 {% endblock %}
 
-{% block content %}
+{% block content  %}
 <h1>{{ post.title }}</h1>
 <p>{{ post.body }}</p>
 
-<div>
-    <a href="/posts">All Posts</a>
+<div class="row row-cols-auto">
+    <div class="col">
+        <a href="/" class="btn btn-primary">All Posts</a>
+    </div>
+
+    {% if post['author_id'] == g.user['id'] %}
+    <div class="col">
+        <a href="{{ url_for('Blog.update', post_id=post['id']) }}" class="btn btn-primary">Edit Post</a>
+    </div>
+    <div class="col">
+        <form action="{{ url_for('Blog.delete', post_id=post['id'])}}" method="POST">
+            <button type="submit" class="btn btn-danger">Delete Post</button>
+        </form>
+    </div>
+    {% endif %}
 </div>
 
 {% endblock %}
