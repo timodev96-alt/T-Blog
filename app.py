@@ -34,16 +34,5 @@ def create():
         conn.close()
         return redirect(url_for('index'))
 
-    return """
-        <form dir="ltr" action="/posts/create" method="post">
-        <label>Post Title:</label>
-        <br />
-        <input type="text" name="title">
-        <br />
-        <label>Post Body:</label>
-        <br />
-        <textarea name="body" cols="50" rows"10"></textarea>
-        <br />
-        <button type="submit">Create Post</button>
-    """
+    return render_template('create_post.html')
     
