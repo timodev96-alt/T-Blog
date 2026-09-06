@@ -1,0 +1,20 @@
+.comic-relief-regular {
+  font-family: "Comic Sans MS", "Comic Neue", cursive;
+  font-weight: 300;
+}
+
+body {
+    font-family: "Comic Sans MS", "Comic Neue", cursive;
+    font-weight: 300;
+}
+
+h1,h2 {
+    font-family: "Comic Sans MS", "Comic Neue", cursive;
+    font-weight: bold;
+}
+
+.container {
+    width: 70%;
+    margin: 0 auto;
+    padding: 20px;
+}
