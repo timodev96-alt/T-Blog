@@ -15,6 +15,11 @@ def get_post(post_id, check_author = True):
         abort(403)
     return post
 
+def reading_time(text):
+    words = len(text.split())
+    minutes = max(1, round(words/60))
+    return minutes
+
 @bp.route('/')
 def index():
     conn = get_db()
@@ -25,7 +30,8 @@ def index():
 @bp.route('/<int:post_id>')
 def show(post_id):
     post = get_post(post_id, check_author=False)
-    return render_template('show_posts.html', post=post)
+    minutes = reading_time(post['body'])
+    return render_template('show_posts.html', post=post, reading_time=minutes)
 
 @bp.route('/create', methods=['GET','POST'])
 @login_required

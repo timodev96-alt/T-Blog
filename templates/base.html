@@ -48,16 +48,16 @@
     <script>
     (function(){
         const btn = document.getElementById('theme-toggle');
-        const saved = localStorage.getItem('theme') || 'light';
+        const saved = localStorage.getItem('theme') || 'Light';
         document.documentElement.setAttribute('data-theme', saved);
-        btn.textContent = saved === 'dark'? 'Light': 'Dark';
+        btn.textContent = saved === 'Dark'? 'Light': 'Dark';
 
         btn.addEventListener('click',()=>{
             const current = document.documentElement.getAttribute('data-theme');
-            const next = current === 'dark'? 'light':'dark';
+            const next = current === 'Dark'? 'Light':'Dark';
             document.documentElement.setAttribute('data-theme', next);
             localStorage.setItem('theme', next);
-            btn.textContent = next ==='dark'? 'light' : 'dark';
+            btn.textContent = next ==='Dark'? 'Light' : 'Dark';
         });
     })();
 </script>

@@ -8,7 +8,7 @@
     --text: #212529;
     --card-bg: #f8f9fa;
 }
-[data-theme="dark"] {
+[data-theme="Dark"] {
     --bg: #121212;
     --text: #e0e0e0;
     --card-bg: #1e1e1e;
@@ -27,22 +27,25 @@ h1,h2 {
     font-weight: bold;
 }
 
-[data-theme="dark"] .navbar {
+[data-theme="Dark"] .navbar {
     background-color: #1e1e1e !important;
 }
 
-[data-theme="dark"] .navbar-light .navbar-nav .nav-link,
-[data-theme="dark"] .navbar-light .navbar-nav .nav-link.activate,
-[data-theme="dark"] .nav-link {
+[data-theme="Dark"] .navbar-light .navbar-nav .nav-link,
+[data-theme="Dark"] .navbar-light .navbar-nav .nav-link.activate,
+[data-theme="Dark"] .nav-link {
     color: var(--text) !important;
 }
-[data-theme="dark"] .text-dark {
+[data-theme="Dark"] .text-Dark {
     color: var(--text) !important;
 }
-[data-theme="dark"] .btn-outline-secondary {
+[data-theme="Dark"] .btn-outline-secondary {
     color: #e0e0e0;
     border-color: #6c757d;
 }
-[data-theme="dark"] .navbar-brand {
+[data-theme="Dark"] .navbar-brand {
+    color: var(--text) !important;
+}
+[data-theme="Dark"] .text-muted {
     color: var(--text) !important;
 }
