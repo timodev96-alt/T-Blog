@@ -1,6 +1,7 @@
 from flask import Blueprint,request, redirect, render_template, url_for, flash, session, g
 from werkzeug.security import generate_password_hash, check_password_hash
 import functools
+import sqlite3
 
 from database import get_db
 
@@ -10,7 +11,7 @@ def login_required(func):
     @functools.wraps(func)
     def wrapped_func(**kwargs):
         if g.user is None:
-            return redirect(url_for('auth.register'))
+            return redirect(url_for('auth.login'))
         return func(**kwargs)
     return wrapped_func
 
@@ -32,14 +33,19 @@ def register():
         if error == None:
             db = get_db()
             try:
-                db.execute('INSERT INTO users (username, email, password) VALUES (?,?,?)', (username, email, generate_password_hash(password)))
+                db.execute(
+                    'INSERT INTO users (username, email, password) VALUES (?,?,?)',
+                    (username, email, generate_password_hash(password))
+                )
                 db.commit()
-                db.close()
-            except db.IntegrityError:
+            except sqlite3.IntegrityError:
                 error = f'{username} Username is already registered!'
-            else:
+            finally:
+                db.close()
+            if error is None:
                 return redirect(url_for('auth.login'))
-            flash(error)
+            if error:
+                flash(error)
 
     return render_template('auth/register.html')
 

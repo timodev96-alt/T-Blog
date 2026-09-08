@@ -18,6 +18,9 @@
         <li class="nav-item">
           <a class="nav-link" href="{{url_for('Blog.create')}}">Create post</a>
         </li>
+        <li class="nav-item">
+        <button id="theme-toggle" class="btn btn-outline-secondary btn-sm">Dark</button>
+        </li>
       </ul>
       <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
         {% if g.user %}
@@ -42,5 +45,22 @@
     <div class="container">
         {% block content %}{% endblock %}
     </div>
+    <script>
+    (function(){
+        const btn = document.getElementById('theme-toggle');
+        const saved = localStorage.getItem('theme') || 'light';
+        document.documentElement.setAttribute('data-theme', saved);
+        btn.textContent = saved === 'dark'? 'Light': 'Dark';
+
+        btn.addEventListener('click',()=>{
+            const current = document.documentElement.getAttribute('data-theme');
+            const next = current === 'dark'? 'light':'dark';
+            document.documentElement.setAttribute('data-theme', next);
+            localStorage.setItem('theme', next);
+            btn.textContent = next ==='dark'? 'light' : 'dark';
+        });
+    })();
+</script>
+    
 </body>
 </html>

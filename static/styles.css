@@ -3,7 +3,21 @@
   font-weight: 300;
 }
 
+:root {
+    --bg: #ffffff;
+    --text: #212529;
+    --card-bg: #f8f9fa;
+}
+[data-theme="dark"] {
+    --bg: #121212;
+    --text: #e0e0e0;
+    --card-bg: #1e1e1e;
+}
+
 body {
+    background-color: var(--bg);
+    color: var(--text);
+    transition: background-color 0.2s ease, color 0.2s ease;
     font-family: "Comic Sans MS", "Comic Neue", cursive;
     font-weight: 300;
 }
@@ -11,4 +25,24 @@ body {
 h1,h2 {
     font-family: "Comic Sans MS", "Comic Neue", cursive;
     font-weight: bold;
+}
+
+[data-theme="dark"] .navbar {
+    background-color: #1e1e1e !important;
+}
+
+[data-theme="dark"] .navbar-light .navbar-nav .nav-link,
+[data-theme="dark"] .navbar-light .navbar-nav .nav-link.activate,
+[data-theme="dark"] .nav-link {
+    color: var(--text) !important;
+}
+[data-theme="dark"] .text-dark {
+    color: var(--text) !important;
+}
+[data-theme="dark"] .btn-outline-secondary {
+    color: #e0e0e0;
+    border-color: #6c757d;
+}
+[data-theme="dark"] .navbar-brand {
+    color: var(--text) !important;
 }
