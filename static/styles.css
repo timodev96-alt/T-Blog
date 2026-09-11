@@ -79,3 +79,17 @@ h1,h2 {
     border: 1px solid #ccc;
     padding: 0.5rem;
 }
+
+[data-theme="Dark"] .nav-tabs .nav-link {
+    color: var(--text) !important;
+    border-color: #444 !important;
+}
+[data-theme="Dark"] .nav-tabs .nav-link.active {
+    background-color: var(--card-bg) !important;
+    color: var(--text) !important;
+    border-color: #444 #444 var(--card-bg) !important;
+}
+
+[data-theme="Dark"] .nav-tabs {
+    border-bottom-color: #444 !important;
+}

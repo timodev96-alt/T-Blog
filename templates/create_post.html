@@ -8,12 +8,65 @@
     <input type="text" name="title" class="form-control" id="postTitle" value="{{ post['title'] if post else '' }}">
   </div>
   <div class="mb-3">
-    <label for="postBody" class="form-label">Post Body</label>
-    <textarea class="form-control" id="postBody" name="body" rows="10">{{ post['body'] if post else '' }}</textarea>
+
+    <label class="form-label">Post Body</label>
+    <ul class="nav nav-tabs">
+      <li class="nav-item">
+        <button type="button" class="nav-link active" id="write-tab" data-tab="write">Write</button>
+      </li>
+      <li class="nav-item">
+        <button type="button" class="nav-link" id="preview-tab" data-tab="preview">Preview</button>
+      </li>
+    </ul>
+
+    <div id="write-pane" class="border border-top-0 p-2">
+      <textarea class="form-control" id="postBody" name="body" rows="10" cols="100" style="border:none; box-shadow:none;">{{ post['body'] if post else '' }}</textarea>
+    </div>
+
+    <div id="preview-pane" class="border border-top-0 p-3 post-body" style="display: none; min-height: 250px;">
+      <em class="text-muted d-block mt-1">Nothing to preview</em>
+    </div>
     <small class="text-muted d-block mt-1">
       Markdown supported!: **Bold**, *italic*, `code`, ```fenced code```, # headings, - lists, &gt; quotes, [links](url)
     </small>
   </div>
   <button type="submit" class="btn btn-primary">{{ 'Save Changes' if post else 'Create Post' }}</button>
 </form>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/marked/12.0.0/marked.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.0.9/purify.min.js"></script>
+<script>
+  (function() {
+    const writeTab = document.getElementById('write-tab');
+    const previewTab = document.getElementById('preview-tab');
+    const writePane = document.getElementById('write-pane');
+    const previewPane = document.getElementById('preview-pane');
+    const textarea = document.getElementById('postBody');
+
+    function showWrite() {
+      writeTab.classList.add('active');
+      previewTab.classList.remove('active');
+      writePane.style.display = 'block';
+      previewPane.style.display = 'none';
+    }
+
+    function showPreview() {
+      writeTab.classList.remove('active');
+      previewTab.classList.add('active');
+      writePane.style.display = 'none';
+      previewPane.style.display = 'block';
+
+      const raw = textarea.value.trim();
+      if (!raw) {
+        previewPane.innerHTML = '<em class="text-muted">Nothing to preview yet...</em>';
+        return;
+      }
+      const html = marked.parse(raw);
+      previewPane.innerHTML = DOMPurify.sanitize(html);
+    }
+
+    writeTab.addEventListener('click', showWrite);
+    previewTab.addEventListener('click', showPreview);
+  })();
+</script>
 {% endblock %}
