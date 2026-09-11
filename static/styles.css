@@ -49,3 +49,33 @@ h1,h2 {
 [data-theme="Dark"] .text-muted {
     color: var(--text) !important;
 }
+
+.post-body {
+    line-height: 1.7;
+}
+.post-body pre {
+    background-color: var(--card-bg, #f4f4f4);
+    padding: 1rem;
+    border-radius: 6px;
+    overflow-x: auto;
+}
+.post-body code {
+    background-color: var(--card-bg, #f4f4f4);
+    padding: 0.15rem , 0.4rem;
+    border-radius: 4px;
+    font-size: 0.9em;
+}
+.post-body blockquote {
+    border-left: 4px solid #ccc;
+    margin-left: 0;
+    padding-left: 1rem;
+    color: #666;
+}
+.post-body table {
+    border-collapse: collapse;
+    width: 100%;
+}
+.post-body table th, .post-body table td {
+    border: 1px solid #ccc;
+    padding: 0.5rem;
+}

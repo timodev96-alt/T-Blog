@@ -7,7 +7,7 @@
 {% block content  %}
 <h1>{{ post.title }}</h1>
 <p class="text-muted">{{ reading_time }} min read </p>
-<p>{{ post.body }}</p>
+<div class="post-body">{{ rendered_body | safe }} </div>
 
 <div class="row row-cols-auto">
     <div class="col">

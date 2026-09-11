@@ -1,6 +1,8 @@
 from flask import render_template, request, url_for, redirect, Blueprint , g, flash, abort
 import functools
 import sqlite3
+import markdown
+import bleach
 from database import get_db
 from auth import login_required
 
@@ -15,9 +17,18 @@ def get_post(post_id, check_author = True):
         abort(403)
     return post
 
+ALLOWED_TAGS = [
+    'p','br','strong','em','u','s','ul','ol','li','h1','h2','h3','h4','blockquote','code','pre','a','hr'
+]
+ALLOWED_ATTRS = {'a':['href','title','rel']}
+
+def render_markdown(text):
+    html = markdown.markdown(text, extensions=['fenced_code','tables'])
+    return bleach.clean(html, tags=ALLOWED_TAGS,attributes=ALLOWED_ATTRS)
+
 def reading_time(text):
     words = len(text.split())
-    minutes = max(1, round(words/60))
+    minutes = max(1, round(words/100))
     return minutes
 
 @bp.route('/')
@@ -30,8 +41,14 @@ def index():
 @bp.route('/<int:post_id>')
 def show(post_id):
     post = get_post(post_id, check_author=False)
+    rendered_body = render_markdown(post['body'])
     minutes = reading_time(post['body'])
-    return render_template('show_posts.html', post=post, reading_time=minutes)
+    return render_template(
+        'show_posts.html',
+        post=post,
+        reading_time=minutes,
+        rendered_body=rendered_body
+    )
 
 @bp.route('/create', methods=['GET','POST'])
 @login_required
