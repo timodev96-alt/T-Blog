@@ -107,3 +107,31 @@ h1,h2 {
     border-color: #6c757d !important;
     box-shadow: 0 0 0 0.25rem rgba(255, 255, 255, 0.1) !important;
 }
+
+.card {
+    background-color: var(--card-bg) !important;
+    color: var(--text) !important;
+}
+
+label, .form-label, p, span, h1, h2, h3, h4, h5, h6, li {
+    color: var(--text);
+}
+
+[data-theme="Dark"] .post-body {
+    color: var(--text) !important;
+}
+
+[data-theme="Dark"] .post-body blockquote {
+    color: #b0b0b0;
+    border-left-color: #555;
+}
+
+[data-theme="Dark"] .btn-outline-secondary {
+    color:var(--text);
+    border-color:#555;
+}
+
+[data-theme="Dark"] .btn-outline-secondary:hover {
+    background-color: #333;
+    color: #fff;
+}

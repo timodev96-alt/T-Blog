@@ -2,38 +2,54 @@
 {% block title %}{{ 'Edit Post' if post else 'Create Post' }}{% endblock %}
 
 {% block content %}
-<form action="{{ url_for('Blog.update', post_id=post['id']) if post else '/posts/create' }}" method="post">
-  <div class="mb-3">
-    <label for="postTitle" class="form-label">Post Title</label>
-    <input type="text" name="title" class="form-control" id="postTitle" value="{{ post['title'] if post else '' }}">
-  </div>
-  <div class="mb-3">
-    <label class="form-label">Post Body</label>
-    <ul class="nav nav-tabs">
-      <li class="nav-item">
-        <button type="button" class="nav-link active" id="write-tab" data-tab="write">Write</button>
-      </li>
-      <li class="nav-item">
-        <button type="button" class="nav-link" id="preview-tab" data-tab="preview">Preview</button>
-      </li>
-    </ul>
+<div class="row justify-content-center my-4">
+  <div class="col-md-9">
+    <div class="card shadow-sm p-4" style="background-color: var(--card-bg); border-color:#444;">
+      <h1 class="mb-4">{{ 'Edit Post' if post else 'Create post'}}</h1>
 
-    <div id="write-pane" class="border border-top-0 p-2">
-      <textarea class="form-control" id="postBody" name="body" rows="10" cols="100" style="border:none; box-shadow:none;">{{ post['body'] if post else '' }}</textarea>
-    </div>
+      <form action="{{ url_for('Blog.update', post_id=post['id']) if post else '/posts/create'}}" method="post">
 
-    <div id="preview-pane" class="border border-top-0 p-3 post-body" style="display: none; min-height: 250px;">
-      <em class="text-muted d-block mt-1">Nothing to preview</em>
+        <div class="mb-3">
+          <label for="postTitle" class="form-label fw-bold">Post Title</label>
+          <input type="text" name="title" class="form-control" id="postTitle" value="{{ post['title'] if post else '' }}">
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label fw-bold">Post Body</label>
+          <ul class="nav nav-tabs" role="tablist">
+            <li class="nav-item" role="presentation">
+              <button type="button" class="nav-link active" id="write-tab">Write</button>
+            </li>
+            <li class="nav-item" role="presentation">
+              <button type="button" class="nav-link" id="preview-tab">Preview</button>
+            </li>
+          </ul>
+
+          <div id="write-pane" class="border border-top-0 p-2">
+            <textarea class="form-control" id="postBody" name="body" rows="12" style="border: none; box-shadow:none; resize: vertical;" required>{{ post['body'] if post else '' }}</textarea>
+          </div>
+
+          <div id="preview-pane" class="border border-top-0 p-3 post-body" style="display: none; min-height: 300px;">
+            <em class="text-muted d-block mt-1">Nothing to preview yet...</em>
+          </div>
+
+          <small class="text-muted d-block mt-2">
+             Markdown supported: **Bold**, *italic*, `code`, ```fenced code```, # headings, - lists, &gt; quotes, [links](url)
+          </small>
+        </div>
+        
+        <div class="d-flex gap-2 mt-4">
+          <button type="submit" class="btn btn-primary">{{ 'Save Changes' if post else 'Create Post' }}</button>
+          <a href="{{ url_for('Blog.index') }}" class="btn btn-outline-secondary">Cancel</a>
+        </div>
+      </form>
     </div>
-    <small class="text-muted d-block mt-1">
-      Markdown supported!: **Bold**, *italic*, `code`, ```fenced code```, # headings, - lists, &gt; quotes, [links](url)
-    </small>
   </div>
-  <button type="submit" class="btn btn-primary">{{ 'Save Changes' if post else 'Create Post' }}</button>
-</form>
+</div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/12.0.0/marked.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.0.9/purify.min.js"></script>
+
 <script>
   (function() {
     const writeTab = document.getElementById('write-tab');
@@ -42,14 +58,14 @@
     const previewPane = document.getElementById('preview-pane');
     const textarea = document.getElementById('postBody');
 
-    function showWrite() {
+    writeTab.addEventListener('click', ()=> {
       writeTab.classList.add('active');
       previewTab.classList.remove('active');
       writePane.style.display = 'block';
       previewPane.style.display = 'none';
-    }
-
-    function showPreview() {
+    });
+    
+    previewTab.addEventListener('click', () => {
       writeTab.classList.remove('active');
       previewTab.classList.add('active');
       writePane.style.display = 'none';
@@ -62,10 +78,7 @@
       }
       const html = marked.parse(raw);
       previewPane.innerHTML = DOMPurify.sanitize(html);
-    }
-
-    writeTab.addEventListener('click', showWrite);
-    previewTab.addEventListener('click', showPreview);
+    });
   })();
 </script>
 {% endblock %}
