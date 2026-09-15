@@ -17,6 +17,9 @@ def get_post(post_id, check_author = True):
         abort(403)
     return post
 
+def get_categories():
+    return get_db().execute('SELECT * FROM categories ORDER BY name').fetchall()
+
 ALLOWED_TAGS = [
     'p','br','strong','em','u','s','ul','ol','li','h1','h2','h3','h4','blockquote','code','pre','a','hr'
 ]
@@ -34,28 +37,50 @@ def reading_time(text):
 @bp.route('/')
 def index():
     conn = get_db()
-    posts = conn.execute('SELECT * FROM posts').fetchall()
+    category_slug = request.args.get('category')
+    if category_slug:
+        posts = conn.execute('''
+        SELECT posts.*, categories.name AS category_name, categories.slug AS category_slug
+        FROM posts
+        JOIN categories ON posts.categories.id = categories.id
+        WHERE categories.slug = ?
+        ORDER BY posts.id DESC
+        ''',(category_slug,)).fetchall()
+    else:
+        posts = conn.execute('''
+        SELECT posts.*, categories.name AS category_name, categories.slug AS category_slug
+        FROM posts
+        LEFT JOIN categories ON posts.category_id = categories.id
+        ORDER BY posts.id DESC
+        ''').fetchall()
+    categories = get_categories()
     conn.close()
-    return render_template('index.html', posts=posts)
+    return render_template('index.html', posts=posts, categories=categories, active_category=category_slug)
 
 @bp.route('/<int:post_id>')
 def show(post_id):
     post = get_post(post_id, check_author=False)
     rendered_body = render_markdown(post['body'])
     minutes = reading_time(post['body'])
+    category = None
+    if post['category_id']:
+        category = get_db().execute('SELECT * FROM categories WHERE id=?', (post['category_id'],)).fetchone()
     return render_template(
         'show_posts.html',
         post=post,
         reading_time=minutes,
-        rendered_body=rendered_body
+        rendered_body=rendered_body,
+        category=category
     )
 
 @bp.route('/create', methods=['GET','POST'])
 @login_required
 def create():
+    categories = get_categories()
     if request.method == 'POST':
         title = request.form['title']
         body = request.form['body']
+        category_id = request.form.get('category_id') or None
         error = None
 
         if not title:
@@ -65,21 +90,22 @@ def create():
             flash(error)
         else:
             conn = get_db()
-            conn.execute('INSERT INTO posts (title, body, author_id) VALUES (?,?,?)', (title, body, g.user['id']))
+            conn.execute('INSERT INTO posts (title, body, author_id, category_id) VALUES (?,?,?,?)', (title, body, g.user['id'], category_id))
             conn.commit()
             conn.close()
             return redirect(url_for('Blog.index'))
 
-    return render_template('create_post.html')
+    return render_template('create_post.html', categories=categories)
 
 @bp.route('/<int:post_id>/update', methods=['GET','POST'])
 @login_required
 def update(post_id):
     post = get_post(post_id)
-
+    categories = get_categories()
     if request.method == 'POST':
         title = request.form['title']
         body = request.form['body']
+        category_id = request.form.get('category_id') or None
         error = None
 
         if not title:
@@ -88,11 +114,11 @@ def update(post_id):
             flash(error)
         else:
             db = get_db()
-            db.execute('UPDATE posts SET title = ?, body = ? WHERE id = ?', (title,body,post_id))
+            db.execute('UPDATE posts SET title = ?, body = ?,category_id = ? WHERE id = ?', (title,body,category_id,post_id))
             db.commit()
             db.close()
             return redirect(url_for('Blog.index'))
-    return render_template('create_post.html', post=post)
+    return render_template('create_post.html', post=post, categories=categories)
 
 @bp.route('/<int:post_id>/delete', methods=['POST'])
 @login_required

@@ -14,7 +14,7 @@
         <a href="/" class="btn btn-primary">All Posts</a>
     </div>
 
-    {% if post['author_id'] == g.user['id'] %}
+    {% if g.user and post['author_id'] == g.user['id'] %}
     <div class="col">
         <a href="{{ url_for('Blog.update', post_id=post['id']) }}" class="btn btn-primary">Edit Post</a>
     </div>
