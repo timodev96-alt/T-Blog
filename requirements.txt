@@ -1,0 +1,5 @@
+Flask==3.0.2
+Werkzeug==3.0.1
+Markdown==3.5.2
+bleach==6.1.0
+gunicorn==26.2.0
