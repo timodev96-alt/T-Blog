@@ -1,8 +1,14 @@
 import os
 import sqlite3
+import shutil
 from flask import g
 
-DATABASE = os.environ.get('DATABASE_URL', 'Blog.db')
+if os.environ.get('VERCEL'):
+    DATABASE = '/tmp/Blog.db'
+    if not os.path.exists(DATABASE) and os.path.exists('Blog.db'):
+        shutil.copyfile('Blog.db', DATABASE)
+else:
+    DATABASE = os.environ.get('DATABASE_URL', 'Blog.db')
 
 def init_db(db):
     db.executescript('''
@@ -29,7 +35,6 @@ def init_db(db):
             FOREIGN KEY(author_id) REFERENCES users(id) ON DELETE CASCADE
         );
 
-        -- Insert default categories if empty
         INSERT OR IGNORE INTO categories (id, name, slug) VALUES 
         (1, 'General', 'general'),
         (2, 'Tech', 'tech'),
@@ -41,7 +46,7 @@ def get_db():
     if 'db' not in g:
         g.db = sqlite3.connect(DATABASE)
         g.db.row_factory = sqlite3.Row
-        init_db(g.db)  # Ensures tables exist
+        init_db(g.db)
     return g.db
 
 def close_db(e=None):
