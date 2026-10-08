@@ -14,4 +14,28 @@ username: Timo-Testy
 - full register/login system
 - SQLite database for the site content
 
+## Tech Stack
+- **Backend:** Python, Flask, SQLite3
+- **Frontend:** Bootstrap 5, CSS, Comic typography (I like it {:)
+
+## Host localy
+1. Clone the repo
+```bash
+git clone https://github.com/timodev96-alt/T-Blog.git
+   cd T-Blog
+```
+
+2. setup and activate a venv
+```bash
+python -m venv venv
+# On Windows:
+venv\Scripts\activate
+# On Mac/Linux:
+source venv/bin/activate
+
+pip install -r requirements.txt
+```
+
+3. Run the app
+`python app.py`
 ### Note that this version is a demo version!
