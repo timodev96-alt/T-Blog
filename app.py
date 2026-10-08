@@ -1,18 +1,27 @@
-import os 
+import os
 import sqlite3
 from flask import Flask
 from database import close_db
 from blog import bp as blogbp
 from auth import bp as authbp
 
-app = Flask(__name__)
-
-app.config.from_mapping(
-    SECRET_KEY = os.environ.get('SECRET_KEY', 'testtesttesttest')
+base_dir = os.path.abspath(os.path.dirname(__file__))
+app = Flask(
+    __name__,
+    template_folder=os.path.join(base_dir, 'templates'),
+    static_folder=os.path.join(base_dir, 'static')
 )
 
-UPLOAD_FOLDER = 'static/uploads'
-ALLOWED_EXTENTIONS = {'png','jpg','jpeg','gif','pdf','txt','docx'}
+app.config.from_mapping(
+    SECRET_KEY=os.environ.get('SECRET_KEY', 'WAODFWAWNAJDNPGAWDPKJWDIJAWD')
+)
+
+if os.environ.get('VERCEL'):
+    UPLOAD_FOLDER = '/tmp/uploads'
+else:
+    UPLOAD_FOLDER = os.path.join(base_dir, 'static', 'uploads')
+
+ALLOWED_EXTENTIONS = {'png', 'jpg', 'jpeg', 'gif', 'pdf', 'txt', 'docx'}
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
