@@ -2,7 +2,9 @@ import os
 import sqlite3
 import shutil
 from flask import g
+from werkzeug.security import generate_password_hash
 
+# Handle Vercel's writable /tmp path
 if os.environ.get('VERCEL'):
     DATABASE = '/tmp/Blog.db'
     if not os.path.exists(DATABASE) and os.path.exists('Blog.db'):
@@ -11,6 +13,7 @@ else:
     DATABASE = os.environ.get('DATABASE_URL', 'Blog.db')
 
 def init_db(db):
+    """Creates tables and pre-seeds default user and demo content."""
     db.executescript('''
         CREATE TABLE IF NOT EXISTS users (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -35,11 +38,26 @@ def init_db(db):
             FOREIGN KEY(author_id) REFERENCES users(id) ON DELETE CASCADE
         );
 
+        -- Default categories
         INSERT OR IGNORE INTO categories (id, name, slug) VALUES 
         (1, 'General', 'general'),
         (2, 'Tech', 'tech'),
         (3, 'Stories', 'stories');
     ''')
+
+    db.execute('''
+        INSERT OR IGNORE INTO users (id, username, email, password)
+        VALUES (1, ?, ?, ?)
+    ''', (
+        'Timo-Testy',
+        'timothy@t-blog.com',
+        generate_password_hash('timo_to_ireland?')
+    ))
+    db.execute('''
+        INSERT OR IGNORE INTO posts (id, title, body, author_id, category_id)
+        VALUES (1, 'Welcome to T-Blog!', 'Hello World! This is an official demo post created by Timo.', 1, 1)
+    ''')
+
     db.commit()
 
 def get_db():
