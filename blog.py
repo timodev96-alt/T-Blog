@@ -3,28 +3,24 @@ import sqlite3
 from flask import abort, Blueprint, flash, g, redirect, render_template, request, url_for
 import bleach
 import markdown
-from auth import login_required
 from database import get_db
 
 bp = Blueprint('Blog', __name__, url_prefix='/posts')
 
-def get_post(post_id, check_author = True):
+def get_post(post_id, check_author=False):
     post = get_db().execute('SELECT * FROM posts WHERE id=?', (post_id,)).fetchone()
-
     if post is None:
         abort(404, f'There is no post with id:{post_id}')
-    if check_author and post['author_id'] != g.user['id']:
-        abort(403)
     return post
 
 def get_categories():
     return get_db().execute('SELECT * FROM categories ORDER BY name').fetchall()
 
 ALLOWED_TAGS = [
-    'p','br','strong','em','u','s','ul','ol','li',
-    'h1','h2','h3','h4','blockquote','code','pre','a','hr'
+    'p', 'br', 'strong', 'em', 'u', 's', 'ul', 'ol', 'li',
+    'h1', 'h2', 'h3', 'h4', 'blockquote', 'code', 'pre', 'a', 'hr'
 ]
-ALLOWED_ATTRS = {'a':['href','title','rel']}
+ALLOWED_ATTRS = {'a': ['href', 'title', 'rel']}
 
 def render_markdown(text):
     html = markdown.markdown(text, extensions=['fenced_code', 'tables'])
@@ -32,7 +28,7 @@ def render_markdown(text):
 
 def reading_time(text):
     words = len(text.split())
-    minutes = max(1, round(words/100))
+    minutes = max(1, round(words / 100))
     return minutes
 
 @bp.route('/')
@@ -42,24 +38,24 @@ def index():
 
     if category_slug:
         posts = conn.execute('''
-            SELECT posts.*, 
-                   users.username AS author_name, 
-                   categories.name AS category_name, 
+            SELECT posts.*,
+                   COALESCE(users.username, 'Anonymous') AS author_name,
+                   categories.name AS category_name,
                    categories.slug AS category_slug
             FROM posts
-            JOIN users ON posts.author_id = users.id
+            LEFT JOIN users ON posts.author_id = users.id
             JOIN categories ON posts.category_id = categories.id
             WHERE categories.slug = ?
             ORDER BY posts.id DESC
         ''', (category_slug,)).fetchall()
     else:
         posts = conn.execute('''
-            SELECT posts.*, 
-                   users.username AS author_name, 
-                   categories.name AS category_name, 
+            SELECT posts.*,
+                   COALESCE(users.username, 'Anonymous') AS author_name,
+                   categories.name AS category_name,
                    categories.slug AS category_slug
             FROM posts
-            JOIN users ON posts.author_id = users.id
+            LEFT JOIN users ON posts.author_id = users.id
             LEFT JOIN categories ON posts.category_id = categories.id
             ORDER BY posts.id DESC
         ''').fetchall()
@@ -75,6 +71,7 @@ def show(post_id):
     category = None
     if post['category_id']:
         category = get_db().execute('SELECT * FROM categories WHERE id=?', (post['category_id'],)).fetchone()
+
     return render_template(
         'show_posts.html',
         post=post,
@@ -84,46 +81,48 @@ def show(post_id):
     )
 
 @bp.route('/create', methods=['GET', 'POST'])
-@login_required
 def create():
     categories = get_categories()
     if request.method == 'POST':
-        title = request.form['title']
-        body = request.form['body']
+        title = request.form.get('title', '').strip()
+        body = request.form.get('body', '').strip()
         category_id = request.form.get('category_id') or None
         error = None
 
         if not title:
-            error = 'Please Enter a Title'
+            error = 'Please enter a title.'
+        elif not body:
+            error = 'Please enter some content.'
 
         if error is not None:
-            flash(error)
+            flash(error, 'danger')
         else:
             conn = get_db()
+            author_id = g.user['id'] if g.user else None
             conn.execute(
-                'INSERT INTO posts (title, body, author_id, category_id) VALUES (?,?,?,?)',
-                (title, body, g.user['id'], category_id)
+                'INSERT INTO posts (title, body, author_id, category_id) VALUES (?, ?, ?, ?)',
+                (title, body, author_id, category_id)
             )
             conn.commit()
+            flash('Post created successfully!', 'success')
             return redirect(url_for('Blog.index'))
 
     return render_template('create_post.html', categories=categories)
 
 @bp.route('/<int:post_id>/update', methods=['GET', 'POST'])
-@login_required
 def update(post_id):
     post = get_post(post_id)
     categories = get_categories()
     if request.method == 'POST':
-        title = request.form['title']
-        body = request.form['body']
+        title = request.form.get('title', '').strip()
+        body = request.form.get('body', '').strip()
         category_id = request.form.get('category_id') or None
         error = None
 
         if not title:
-            error = 'Please Enter a Title'
+            error = 'Please enter a title.'
         if error is not None:
-            flash(error)
+            flash(error, 'danger')
         else:
             db = get_db()
             db.execute(
@@ -131,15 +130,16 @@ def update(post_id):
                 (title, body, category_id, post_id)
             )
             db.commit()
+            flash('Post updated!', 'success')
             return redirect(url_for('Blog.index'))
 
     return render_template('create_post.html', post=post, categories=categories)
 
 @bp.route('/<int:post_id>/delete', methods=['POST'])
-@login_required
 def delete(post_id):
     post = get_post(post_id)
     db = get_db()
     db.execute('DELETE FROM posts WHERE id = ?', (post_id,))
     db.commit()
+    flash('Post deleted!', 'success')
     return redirect(url_for('Blog.index'))
