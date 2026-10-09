@@ -1,8 +1,22 @@
 import os
 import sqlite3
+from urllib.parse import urlsplit, urlunsplit, parse_qsl, urlencode
 from flask import g
 
-DATABASE_URL = os.environ.get('DATABASE_URL')
+
+def _clean_url(url):
+    if not url:
+        return url
+    parts = urlsplit(url)
+    query = [(k, v) for k, v in parse_qsl(parts.query) if k != 'supa']
+    return urlunsplit(parts._replace(query=urlencode(query)))
+
+
+DATABASE_URL = _clean_url(
+    os.environ.get('DATABASE_URL')
+    or os.environ.get('POSTGRES_URL')
+    or os.environ.get('POSTGRES_URL_NON_POOLING')
+)
 USE_PG = bool(DATABASE_URL)
 
 if USE_PG:
@@ -44,6 +58,8 @@ _initialized = False
 
 
 class DB:
+    """Tiny wrapper so the same code (and '?' placeholders) works on both databases."""
+
     def __init__(self, conn):
         self.conn = conn
 
@@ -81,7 +97,10 @@ def get_db():
         if USE_PG:
             conn = psycopg2.connect(DATABASE_URL)
         elif os.environ.get('VERCEL'):
-            raise RuntimeError('DATABASE_URL is not set. SQLite cannot persist on Vercel.')
+            raise RuntimeError(
+                'No database URL set. Add DATABASE_URL (or POSTGRES_URL) in '
+                'Vercel Settings -> Environment Variables, then redeploy.'
+            )
         else:
             conn = sqlite3.connect(DATABASE)
             conn.row_factory = sqlite3.Row

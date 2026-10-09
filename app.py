@@ -4,6 +4,7 @@ from flask import Flask
 from database import close_db
 from blog import bp as blogbp
 from auth import bp as authbp
+from werkzeug.exceptions import HTTPException
 
 base_dir = os.path.abspath(os.path.dirname(__file__))
 app = Flask(
@@ -32,15 +33,12 @@ app.register_blueprint(authbp)
 
 app.add_url_rule('/', endpoint='Blog.index')
 
-@app.route('/dbcheck')
-def dbcheck():
+@app.errorhandler(Exception)
+def show_error(e):
+    if isinstance(e, HTTPException):
+        return e
     import traceback
-    try:
-        from database import get_db
-        get_db().execute('SELECT 1').fetchone()
-        return 'DB OK'
-    except Exception:
-        return '<pre>' + traceback.format_exc() + '</pre>', 500
+    return '<pre>' + traceback.format_exc() + '</pre>', 500
 
 if __name__ == "__main__" :
     app.run(debug=True)
