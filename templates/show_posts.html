@@ -5,25 +5,22 @@
 {% endblock %}
 
 {% block content  %}
-<h1>{{ post.title }}</h1>
-<p class="text-muted">{{ reading_time }} min read </p>
-<div class="post-body">{{ rendered_body | safe }} </div>
+<div class="row justify-content-center my-4">
+    <div class="col-md-9">
+        <h1 class="mb-2">{{ post.title }}</h1>
+        <p class="text-muted mb-4">⏱{{ reading_time }} min read</p>
+        
+        <div class="post-body mb-5">{{ rendered_body | safe }}</div>
 
-<div class="row row-cols-auto">
-    <div class="col">
-        <a href="/" class="btn btn-primary">All Posts</a>
-    </div>
+        <hr>
 
-    {% if g.user and post['author_id'] == g.user['id'] %}
-    <div class="col">
-        <a href="{{ url_for('Blog.update', post_id=post['id']) }}" class="btn btn-primary">Edit Post</a>
+        <div class="d-flex gap-2">
+            <a href="/" class="btn btn-outline-secondary">&larr; All Posts</a>
+            <a href="{{ url_for('Blog.update', post_id=post['id']) }}" class="btn btn-primary">Edit Post</a>
+            <form action="{{ url_for('Blog.delete', post_id=post['id'])}}" method="POST" onsubmit="return confirm('Delete this post?');">
+                <button type="submit" class="btn btn-danger">Delete</button>
+            </form>
+        </div>
     </div>
-    <div class="col">
-        <form action="{{ url_for('Blog.delete', post_id=post['id'])}}" method="POST">
-            <button type="submit" class="btn btn-danger">Delete Post</button>
-        </form>
-    </div>
-    {% endif %}
 </div>
-
 {% endblock %}
