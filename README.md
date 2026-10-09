@@ -4,11 +4,6 @@
 
 ## This is simple Web app.. A blog made in Flask and SQLite to be as Facebook but for tech guys
 
-### Test credentials:
-Email: timothy@t-blog.com
-password: timo_to_ireland?
-username: Timo-Testy
-
 ## Key features
 - Edit, delete, create posts
 - full register/login system

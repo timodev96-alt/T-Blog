@@ -1,71 +1,94 @@
 import os
 import sqlite3
-import shutil
 from flask import g
-from werkzeug.security import generate_password_hash
 
-# Handle Vercel's writable /tmp path
-if os.environ.get('VERCEL'):
-    DATABASE = '/tmp/Blog.db'
-    if not os.path.exists(DATABASE) and os.path.exists('Blog.db'):
-        shutil.copyfile('Blog.db', DATABASE)
+DATABASE_URL = os.environ.get('DATABASE_URL')
+USE_PG = bool(DATABASE_URL)
+
+if USE_PG:
+    import psycopg2
+    import psycopg2.extras
+    IntegrityError = psycopg2.IntegrityError
 else:
-    DATABASE = os.environ.get('DATABASE_URL', 'Blog.db')
+    IntegrityError = sqlite3.IntegrityError
+    DATABASE = os.path.join(os.path.abspath(os.path.dirname(__file__)), 'Blog.db')
 
-def init_db(db):
-    """Creates tables and pre-seeds default user and demo content."""
-    db.executescript('''
-        CREATE TABLE IF NOT EXISTS users (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            username TEXT NOT NULL,
-            password TEXT NOT NULL,
-            email TEXT NOT NULL UNIQUE
-        );
+PK = 'SERIAL PRIMARY KEY' if USE_PG else 'INTEGER PRIMARY KEY AUTOINCREMENT'
 
-        CREATE TABLE IF NOT EXISTS categories (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            name TEXT UNIQUE NOT NULL,
-            slug TEXT UNIQUE NOT NULL
-        );
+SCHEMA = f'''
+CREATE TABLE IF NOT EXISTS users (
+    id {PK},
+    username TEXT NOT NULL,
+    password TEXT NOT NULL,
+    email TEXT NOT NULL UNIQUE
+);
+CREATE TABLE IF NOT EXISTS categories (
+    id {PK},
+    name TEXT UNIQUE NOT NULL,
+    slug TEXT UNIQUE NOT NULL
+);
+CREATE TABLE IF NOT EXISTS posts (
+    id {PK},
+    title TEXT NOT NULL,
+    body TEXT NOT NULL,
+    author_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    category_id INTEGER REFERENCES categories(id)
+);
+INSERT INTO categories (name, slug) VALUES
+    ('General', 'general'), ('Tech', 'tech'), ('Stories', 'stories')
+ON CONFLICT DO NOTHING;
+'''
 
-        CREATE TABLE IF NOT EXISTS posts (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            title TEXT NOT NULL,
-            body TEXT NOT NULL,
-            author_id INTEGER,
-            created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-            category_id INTEGER REFERENCES categories(id),
-            FOREIGN KEY(author_id) REFERENCES users(id) ON DELETE CASCADE
-        );
+_initialized = False
 
-        -- Default categories
-        INSERT OR IGNORE INTO categories (id, name, slug) VALUES 
-        (1, 'General', 'general'),
-        (2, 'Tech', 'tech'),
-        (3, 'Stories', 'stories');
-    ''')
 
-    db.execute('''
-        INSERT OR IGNORE INTO users (id, username, email, password)
-        VALUES (1, ?, ?, ?)
-    ''', (
-        'Timo-Testy',
-        'timothy@t-blog.com',
-        generate_password_hash('timo_to_ireland?')
-    ))
-    db.execute('''
-        INSERT OR IGNORE INTO posts (id, title, body, author_id, category_id)
-        VALUES (1, 'Welcome to T-Blog!', 'Hello World! This is an official demo post created by Timo.', 1, 1)
-    ''')
+class DB:
+    def __init__(self, conn):
+        self.conn = conn
 
+    def execute(self, sql, params=()):
+        if USE_PG:
+            cur = self.conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor)
+            cur.execute(sql.replace('?', '%s'), params)
+            return cur
+        return self.conn.execute(sql, params)
+
+    def commit(self):
+        self.conn.commit()
+
+    def rollback(self):
+        self.conn.rollback()
+
+    def close(self):
+        self.conn.close()
+
+
+def _init_schema(db):
+    global _initialized
+    if _initialized:
+        return
+    if USE_PG:
+        db.conn.cursor().execute(SCHEMA)
+    else:
+        db.conn.executescript(SCHEMA)
     db.commit()
+    _initialized = True
+
 
 def get_db():
     if 'db' not in g:
-        g.db = sqlite3.connect(DATABASE)
-        g.db.row_factory = sqlite3.Row
-        init_db(g.db)
+        if USE_PG:
+            conn = psycopg2.connect(DATABASE_URL)
+        elif os.environ.get('VERCEL'):
+            raise RuntimeError('DATABASE_URL is not set. SQLite cannot persist on Vercel.')
+        else:
+            conn = sqlite3.connect(DATABASE)
+            conn.row_factory = sqlite3.Row
+        g.db = DB(conn)
+        _init_schema(g.db)
     return g.db
+
 
 def close_db(e=None):
     db = g.pop('db', None)
