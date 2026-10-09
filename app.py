@@ -32,5 +32,15 @@ app.register_blueprint(authbp)
 
 app.add_url_rule('/', endpoint='Blog.index')
 
+@app.route('/dbcheck')
+def dbcheck():
+    import traceback
+    try:
+        from database import get_db
+        get_db().execute('SELECT 1').fetchone()
+        return 'DB OK'
+    except Exception:
+        return '<pre>' + traceback.format_exc() + '</pre>', 500
+
 if __name__ == "__main__" :
     app.run(debug=True)
